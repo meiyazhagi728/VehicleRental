@@ -6,6 +6,7 @@ import { createBooking } from '../../store/slices/bookingSlice';
 import { FaStar, FaMapMarkerAlt, FaCalendar, FaUser, FaPhone } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import './VehicleDetail.css';
 
 const VehicleDetail = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const VehicleDetail = () => {
     startDate: null,
     endDate: null,
     pickupLocation: '',
+    dropLocation: '',
     driverDetails: {
       name: '',
       licenseNumber: '',
@@ -168,6 +170,17 @@ const VehicleDetail = () => {
                   value={bookingData.pickupLocation}
                   onChange={(e) => setBookingData(prev => ({ ...prev, pickupLocation: e.target.value }))}
                   placeholder="Enter pickup location"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Drop Location</label>
+                <input
+                  type="text"
+                  value={bookingData.dropLocation}
+                  onChange={(e) => setBookingData(prev => ({ ...prev, dropLocation: e.target.value }))}
+                  placeholder="Enter drop location"
                   required
                 />
               </div>

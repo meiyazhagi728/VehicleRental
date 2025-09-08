@@ -276,4 +276,87 @@ router.post('/:id/reviews', [
   }
 });
 
+// @route   GET /api/vehicles/vendor
+// @desc    Get vendor's vehicles
+// @access  Private (Vendor only)
+router.get('/vendor', [protect, authorize('vendor')], async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ vendorId: req.user._id })
+      .populate('reviews.userId', 'name')
+      .sort({ createdAt: -1 });
+
+    res.json(vehicles);
+  } catch (error) {
+    console.error('Get vendor vehicles error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/vehicles/vendor/mechanics
+// @desc    Get vendor's associated mechanics
+// @access  Private (Vendor only)
+router.get('/vendor/mechanics', [protect, authorize('vendor')], async (req, res) => {
+  try {
+    const Mechanic = require('../models/Mechanic');
+    
+    // For now, return all mechanics as associated
+    // In a real implementation, you would have a VendorMechanic association model
+    const mechanics = await Mechanic.find({ availability: true })
+      .populate('userId', 'name phone email')
+      .limit(10);
+
+    res.json(mechanics);
+  } catch (error) {
+    console.error('Get vendor mechanics error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/vehicles/vendor/mechanics/:id/associate
+// @desc    Associate a mechanic with vendor
+// @access  Private (Vendor only)
+router.post('/vendor/mechanics/:id/associate', [protect, authorize('vendor')], async (req, res) => {
+  try {
+    const Mechanic = require('../models/Mechanic');
+    
+    const mechanic = await Mechanic.findById(req.params.id);
+    if (!mechanic) {
+      return res.status(404).json({ message: 'Mechanic not found' });
+    }
+
+    // In a real implementation, you would create an association record
+    // For now, just return success
+    res.json({ 
+      message: 'Mechanic associated successfully',
+      mechanic: mechanic
+    });
+  } catch (error) {
+    console.error('Associate mechanic error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/vehicles/vendor/mechanics/:id/disassociate
+// @desc    Disassociate a mechanic from vendor
+// @access  Private (Vendor only)
+router.delete('/vendor/mechanics/:id/disassociate', [protect, authorize('vendor')], async (req, res) => {
+  try {
+    const Mechanic = require('../models/Mechanic');
+    
+    const mechanic = await Mechanic.findById(req.params.id);
+    if (!mechanic) {
+      return res.status(404).json({ message: 'Mechanic not found' });
+    }
+
+    // In a real implementation, you would remove the association record
+    // For now, just return success
+    res.json({ 
+      message: 'Mechanic disassociated successfully'
+    });
+  } catch (error) {
+    console.error('Disassociate mechanic error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

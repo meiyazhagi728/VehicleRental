@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getUserBookings } from '../../store/slices/bookingSlice';
 import { FaCalendar, FaCar, FaMapMarkerAlt, FaMoneyBillWave, FaClock } from 'react-icons/fa';
+import './BookingHistory.css';
 
 const BookingHistory = () => {
   const dispatch = useDispatch();

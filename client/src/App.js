@@ -8,12 +8,22 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import UserDashboard from './pages/user/UserDashboard';
 import VendorDashboard from './pages/vendor/VendorDashboard';
+import AddVehicle from './pages/vendor/AddVehicle';
+import ManageVehicles from './pages/vendor/ManageVehicles';
+import VendorBookings from './pages/vendor/VendorBookings';
+import VendorMechanics from './pages/vendor/VendorMechanics';
+import VendorProfile from './pages/vendor/VendorProfile';
 import MechanicDashboard from './pages/mechanic/MechanicDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import VehicleList from './pages/vehicles/VehicleList';
 import VehicleDetail from './pages/vehicles/VehicleDetail';
 import MechanicList from './pages/mechanics/MechanicList';
 import BookingHistory from './pages/bookings/BookingHistory';
+import BookingDetails from './pages/bookings/BookingDetails';
+import Profile from './pages/user/Profile';
+import MechanicProfile from './pages/mechanic/MechanicProfile';
+import SetAvailability from './pages/mechanic/SetAvailability';
+import ManageServices from './pages/mechanic/ManageServices';
 import PrivateRoute from './components/auth/PrivateRoute';
 import './App.css';
 
@@ -48,6 +58,27 @@ function App() {
               <BookingHistory />
             </PrivateRoute>
           } />
+          <Route path="/bookings/:id" element={
+            <PrivateRoute>
+              <BookingDetails />
+            </PrivateRoute>
+          } />
+
+          <Route path="/profile" element={
+            <PrivateRoute>
+              {user?.role === 'mechanic' ? <MechanicProfile /> : <Profile />}
+            </PrivateRoute>
+          } />
+          <Route path="/availability" element={
+            <PrivateRoute requiredRole="mechanic">
+              <SetAvailability />
+            </PrivateRoute>
+          } />
+          <Route path="/services" element={
+            <PrivateRoute requiredRole="mechanic">
+              <ManageServices />
+            </PrivateRoute>
+          } />
 
           {/* Admin Routes */}
           <Route path="/admin/*" element={
@@ -57,9 +88,34 @@ function App() {
           } />
 
           {/* Vendor Routes */}
-          <Route path="/vendor/*" element={
+          <Route path="/vendor/dashboard" element={
             <PrivateRoute requiredRole="vendor">
               <VendorDashboard />
+            </PrivateRoute>
+          } />
+          <Route path="/vendor/add-vehicle" element={
+            <PrivateRoute requiredRole="vendor">
+              <AddVehicle />
+            </PrivateRoute>
+          } />
+          <Route path="/vendor/manage-vehicles" element={
+            <PrivateRoute requiredRole="vendor">
+              <ManageVehicles />
+            </PrivateRoute>
+          } />
+          <Route path="/vendor/bookings" element={
+            <PrivateRoute requiredRole="vendor">
+              <VendorBookings />
+            </PrivateRoute>
+          } />
+          <Route path="/vendor/mechanics" element={
+            <PrivateRoute requiredRole="vendor">
+              <VendorMechanics />
+            </PrivateRoute>
+          } />
+          <Route path="/vendor/profile" element={
+            <PrivateRoute requiredRole="vendor">
+              <VendorProfile />
             </PrivateRoute>
           } />
 

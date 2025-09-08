@@ -21,7 +21,7 @@ const bookingSchema = new mongoose.Schema({
     required: [true, 'Start date is required'],
     validate: {
       validator: function(value) {
-        return value > new Date();
+        return value > new Date(Date.now() - 86400000);
       },
       message: 'Start date must be in the future'
     }

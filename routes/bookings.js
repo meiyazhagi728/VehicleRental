@@ -167,8 +167,15 @@ router.get('/vendor', [protect, authorize('vendor')], async (req, res) => {
 
     const total = await Booking.countDocuments(filter);
 
+    // Add customer and vehicle names to bookings for easier display
+    const formattedBookings = bookings.map(booking => ({
+      ...booking.toObject(),
+      customerName: booking.userId?.name || 'Unknown Customer',
+      vehicleName: booking.vehicleId?.name || 'Unknown Vehicle'
+    }));
+
     res.json({
-      bookings,
+      bookings: formattedBookings,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
@@ -350,3 +357,4 @@ router.post('/:id/payment', [
 });
 
 module.exports = router;
+

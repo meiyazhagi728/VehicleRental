@@ -1,7 +1,11 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, Routes, Route } from 'react-router-dom';
 import { FaUsers, FaCar, FaMoneyBillWave, FaCheckCircle } from 'react-icons/fa';
+import ManageVendors from './ManageVendors';
+import ManageVehicles from './ManageVehicles';
+import ManageUsers from './ManageUsers';
+import AdminProfile from './AdminProfile';
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -69,8 +73,20 @@ const AdminDashboard = () => {
                 <h3>Manage Users</h3>
                 <p>User management</p>
               </Link>
+              <Link to="/admin/profile" className="action-card">
+                <FaUsers />
+                <h3>Profile</h3>
+                <p>View/update profile</p>
+              </Link>
             </div>
           </div>
+
+          <Routes>
+            <Route path="vendors" element={<ManageVendors />} />
+            <Route path="vehicles" element={<ManageVehicles />} />
+            <Route path="users" element={<ManageUsers />} />
+            <Route path="profile" element={<AdminProfile />} />
+          </Routes>
         </div>
       </div>
     </div>

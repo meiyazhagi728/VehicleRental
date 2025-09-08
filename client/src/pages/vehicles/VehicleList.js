@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getVehicles } from '../../store/slices/vehicleSlice';
 import { FaSearch, FaFilter, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
+import './VehicleList.css';
 
 const VehicleList = () => {
   const dispatch = useDispatch();

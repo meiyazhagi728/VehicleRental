@@ -78,6 +78,19 @@ router.get('/bookings', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/users
+// @desc    Get all users (admin/vendor only)
+// @access  Private
+router.get('/', [protect, authorize('admin', 'vendor')], async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password');
+    res.json(users);
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/users/:id
 // @desc    Get user by ID (admin only)
 // @access  Private

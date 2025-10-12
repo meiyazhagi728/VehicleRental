@@ -17,7 +17,11 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #6c757d;
+  background: var(--blue-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--blue-glass-border);
+  box-shadow: var(--blue-glass-shadow);
   color: white;
   border: none;
   border-radius: 8px;
@@ -27,7 +31,7 @@
 }
 
 .back-btn:hover {
-  background: #495057;
+  background: var(--accent-color);
   transform: translateY(-2px);
 }
 
@@ -242,18 +246,26 @@
 }
 
 .btn-primary:disabled {
-  background: #6c757d;
+  background: var(--blue-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--blue-glass-border);
+  box-shadow: var(--blue-glass-shadow);
   cursor: not-allowed;
   transform: none;
 }
 
 .btn-secondary {
-  background: #6c757d;
+  background: var(--blue-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--blue-glass-border);
+  box-shadow: var(--blue-glass-shadow);
   color: white;
 }
 
 .btn-secondary:hover {
-  background: #495057;
+  background: var(--accent-color);
   transform: translateY(-2px);
 }
 

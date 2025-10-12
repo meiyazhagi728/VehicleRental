@@ -3,18 +3,23 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 const ManageVehicles = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user, token } = useSelector((state) => state.auth);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const fetchVehicles = async () => {
+    if (!user || !token) {
+      setError('Please log in to access this page');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
-      const res = await fetch('/api/vehicles/vendor', {
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user?.token}` },
+      const res = await fetch('http://localhost:5000/api/vehicles/vendor', {
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error((await res.json()).message || 'Failed to load vehicles');
       const data = await res.json();
@@ -33,9 +38,9 @@ const ManageVehicles = () => {
 
   const toggleAvailability = async (vehicle) => {
     try {
-      const res = await fetch(`/api/vehicles/${vehicle._id}`, {
+      const res = await fetch(`http://localhost:5000/api/vehicles/${vehicle._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user?.token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ isAvailable: !vehicle.isAvailable }),
       });
       if (!res.ok) throw new Error((await res.json()).message || 'Failed to update');
@@ -48,7 +53,7 @@ const ManageVehicles = () => {
   const deleteVehicle = async (vehicleId) => {
     if (!window.confirm('Delete this vehicle?')) return;
     try {
-      const res = await fetch(`/api/vehicles/${vehicleId}`, {
+      const res = await fetch(`http://localhost:5000/api/vehicles/${vehicleId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${user?.token}` },
       });
@@ -88,7 +93,16 @@ const ManageVehicles = () => {
             <tbody>
               {vehicles.map((v) => (
                 <tr key={v._id}>
-                  <td>{v.images?.[0] && <img src={v.images[0]} alt={v.name} style={{ width: 80, height: 50, objectFit: 'cover' }} />}</td>
+                  <td>
+                    <img 
+                      src={v.images?.[0] || v.image || '/api/placeholder/80/50' || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzRBOTBFMiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5WZWhpY2xlPC90ZXh0Pjwvc3ZnPg=='} 
+                      alt={v.name || v.make + ' ' + v.model || 'Vehicle'} 
+                      style={{ width: 80, height: 50, objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzRBOTBFMiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5WZWhpY2xlPC90ZXh0Pjwvc3ZnPg==';
+                      }}
+                    />
+                  </td>
                   <td>{v.name}</td>
                   <td>{v.type}</td>
                   <td>₹{v.pricePerDay}</td>

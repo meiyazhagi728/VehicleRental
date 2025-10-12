@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const initialState = {
   mechanics: [],
@@ -27,9 +27,12 @@ export const getMechanics = createAsyncThunk(
         });
       }
       
-      const response = await axios.get(`/api/mechanics?${params}`);
+      console.log('API call to mechanics with params:', params.toString());
+      const response = await api.get(`/mechanics?${params}`);
+      console.log('Mechanics API response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('Mechanics API error:', error);
       const message =
         (error.response &&
           error.response.data &&
@@ -53,7 +56,7 @@ export const getNearbyMechanics = createAsyncThunk(
         params.append('maxDistance', locationData.maxDistance);
       }
       
-      const response = await axios.get(`/api/mechanics/nearby?${params}`);
+      const response = await api.get(`/mechanics/nearby?${params}`);
       return response.data;
     } catch (error) {
       const message =
@@ -72,7 +75,7 @@ export const getMechanic = createAsyncThunk(
   'mechanics/getOne',
   async (id, thunkAPI) => {
     try {
-      const response = await axios.get(`/api/mechanics/${id}`);
+      const response = await api.get(`/mechanics/${id}`);
       return response.data;
     } catch (error) {
       const message =
@@ -97,7 +100,7 @@ export const createMechanicProfile = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.post('/api/mechanics', mechanicData, config);
+      const response = await api.post('/mechanics', mechanicData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -122,7 +125,7 @@ export const updateMechanicProfile = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.put('/api/mechanics/profile', profileData, config);
+      const response = await api.put('/mechanics/profile', profileData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -147,7 +150,7 @@ export const updateMechanicAvailability = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.put('/api/mechanics/availability', availabilityData, config);
+      const response = await api.put('/mechanics/availability', availabilityData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -172,7 +175,7 @@ export const addMechanicReview = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.post(`/api/mechanics/${id}/reviews`, reviewData, config);
+      const response = await api.post(`/mechanics/${id}/reviews`, reviewData, config);
       return response.data;
     } catch (error) {
       const message =

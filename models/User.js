@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'vendor', 'mechanic', 'admin' , 'Vendor'],
+    enum: ['user', 'vendor', 'mechanic', 'admin'],
     default: 'user'
   },
   address: {
@@ -52,6 +52,29 @@ const userSchema = new mongoose.Schema({
     default: function() {
       return this.role === 'user' || this.role === 'admin';
     }
+  },
+  availability: {
+    type: Boolean,
+    default: true
+  },
+  workingHours: {
+    start: {
+      type: String,
+      default: '09:00'
+    },
+    end: {
+      type: String,
+      default: '18:00'
+    }
+  },
+  workingDays: {
+    type: [String],
+    default: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    enum: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  },
+  services: {
+    type: [String],
+    default: ['General Maintenance']
   },
   profileImage: {
     type: String,

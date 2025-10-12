@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const initialState = {
   vehicles: [],
@@ -27,7 +27,7 @@ export const getVehicles = createAsyncThunk(
         });
       }
       
-      const response = await axios.get(`/api/vehicles?${params}`);
+      const response = await api.get(`/vehicles?${params}`);
       return response.data;
     } catch (error) {
       const message =
@@ -46,7 +46,7 @@ export const getVehicle = createAsyncThunk(
   'vehicles/getOne',
   async (id, thunkAPI) => {
     try {
-      const response = await axios.get(`/api/vehicles/${id}`);
+      const response = await api.get(`/vehicles/${id}`);
       return response.data;
     } catch (error) {
       const message =
@@ -71,7 +71,7 @@ export const createVehicle = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.post('/api/vehicles', vehicleData, config);
+      const response = await api.post('/vehicles', vehicleData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -96,7 +96,7 @@ export const updateVehicle = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.put(`/api/vehicles/${id}`, vehicleData, config);
+      const response = await api.put(`/vehicles/${id}`, vehicleData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -121,7 +121,7 @@ export const deleteVehicle = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      await axios.delete(`/api/vehicles/${id}`, config);
+      await api.delete(`/vehicles/${id}`, config);
       return id;
     } catch (error) {
       const message =
@@ -146,7 +146,7 @@ export const addVehicleReview = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.post(`/api/vehicles/${id}/reviews`, reviewData, config);
+      const response = await api.post(`/vehicles/${id}/reviews`, reviewData, config);
       return response.data;
     } catch (error) {
       const message =

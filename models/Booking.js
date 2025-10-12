@@ -21,6 +21,10 @@ const bookingSchema = new mongoose.Schema({
     required: [true, 'Start date is required'],
     validate: {
       validator: function(value) {
+        // Allow past dates for completed bookings, but require future dates for new bookings
+        if (this.status === 'completed') {
+          return true; // Allow any date for completed bookings
+        }
         return value > new Date(Date.now() - 86400000);
       },
       message: 'Start date must be in the future'
@@ -31,7 +35,10 @@ const bookingSchema = new mongoose.Schema({
     required: [true, 'End date is required'],
     validate: {
       validator: function(value) {
-        return value > this.startDate;
+        // Allow same day bookings as long as end time is after start time
+        const startTime = new Date(this.startDate).getTime();
+        const endTime = new Date(value).getTime();
+        return endTime > startTime;
       },
       message: 'End date must be after start date'
     }
@@ -39,7 +46,7 @@ const bookingSchema = new mongoose.Schema({
   totalDays: {
     type: Number,
     required: true,
-    min: [1, 'Booking must be for at least 1 day']
+    min: [0.04, 'Booking must be for at least 1 hour (0.04 days)']
   },
   totalAmount: {
     type: Number,
@@ -64,6 +71,17 @@ const bookingSchema = new mongoose.Schema({
   paymentId: {
     type: String,
     default: ''
+  },
+  paymentAmount: {
+    type: Number,
+    default: 0
+  },
+  transactionId: {
+    type: String,
+    default: ''
+  },
+  paymentDate: {
+    type: Date
   },
   pickupLocation: {
     type: String,
@@ -131,6 +149,16 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    default: null
+  },
+  review: {
+    type: String,
+    maxlength: [500, 'Review cannot exceed 500 characters']
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -146,6 +174,29 @@ const bookingSchema = new mongoose.Schema({
 // Index for queries
 bookingSchema.index({ userId: 1, status: 1 });
 bookingSchema.index({ vendorId: 1, status: 1 });
+bookingSchema.index({ vendorId: 1, rating: 1 });
+bookingSchema.index({ status: 1, rating: 1 });
+
+// Static method to calculate vendor average rating
+bookingSchema.statics.calculateVendorRating = async function(vendorId) {
+  const ratings = await this.find({
+    vendorId: vendorId,
+    status: 'completed',
+    rating: { $exists: true, $ne: null }
+  }).select('rating');
+  
+  if (ratings.length === 0) {
+    return { averageRating: 0, totalRatings: 0 };
+  }
+  
+  const totalRating = ratings.reduce((sum, booking) => sum + booking.rating, 0);
+  const averageRating = Math.round((totalRating / ratings.length) * 10) / 10;
+  
+  return {
+    averageRating,
+    totalRatings: ratings.length
+  };
+};
 bookingSchema.index({ vehicleId: 1, status: 1 });
 bookingSchema.index({ startDate: 1, endDate: 1 });
 

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const initialState = {
   bookings: [],
@@ -34,7 +34,7 @@ export const getUserBookings = createAsyncThunk(
         });
       }
       
-      const response = await axios.get(`/api/bookings?${params}`, config);
+      const response = await api.get(`/bookings/user?${params}`, config);
       return response.data;
     } catch (error) {
       const message =
@@ -67,7 +67,7 @@ export const getVendorBookings = createAsyncThunk(
         });
       }
       
-      const response = await axios.get(`/api/bookings/vendor?${params}`, config);
+      const response = await api.get(`/bookings/vendor?${params}`, config);
       return response.data;
     } catch (error) {
       const message =
@@ -92,7 +92,7 @@ export const getBooking = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`/api/bookings/${id}`, config);
+      const response = await api.get(`/bookings/${id}`, config);
       return response.data;
     } catch (error) {
       const message =
@@ -117,7 +117,7 @@ export const createBooking = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.post('/api/bookings', bookingData, config);
+      const response = await api.post('/bookings', bookingData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -142,7 +142,7 @@ export const updateBookingStatus = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.put(`/api/bookings/${id}/status`, statusData, config);
+      const response = await api.put(`/bookings/${id}/status`, statusData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -167,7 +167,7 @@ export const processPayment = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.post(`/api/bookings/${id}/payment`, paymentData, config);
+      const response = await api.post(`/bookings/${id}/payment`, paymentData, config);
       return response.data;
     } catch (error) {
       const message =

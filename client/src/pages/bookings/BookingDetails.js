@@ -15,7 +15,7 @@ const BookingDetails = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await fetch(`/api/bookings/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/bookings/${id}`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${user?.token}`,
@@ -26,6 +26,9 @@ const BookingDetails = () => {
         throw new Error(data.message || 'Failed to load booking');
       }
       const data = await response.json();
+      console.log('Booking details received:', data);
+      console.log('Vehicle data:', data.vehicleId);
+      console.log('Vendor data:', data.vendorId);
       setBooking(data);
     } catch (err) {
       setError(err.message);
@@ -69,13 +72,29 @@ const BookingDetails = () => {
           <div className="section">
             <h3>Vehicle</h3>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <img src={booking.vehicleId?.images?.[0]} alt={booking.vehicleId?.name} style={{ width: 200, height: 120, objectFit: 'cover' }} />
+              <div style={{ width: 200, height: 120, backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #ddd' }}>
+                {booking.vehicleId?.images?.[0] ? (
+                  <img 
+                    src={booking.vehicleId.images[0]} 
+                    alt={booking.vehicleId?.name || 'Vehicle'} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div style={{ display: booking.vehicleId?.images?.[0] ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', color: '#666' }}>
+                  <FaCar style={{ fontSize: '2rem', marginBottom: '0.5rem' }} />
+                  <span>No Image</span>
+                </div>
+              </div>
               <div>
-                <h4><FaCar /> {booking.vehicleId?.name}</h4>
-                <p>{booking.vehicleId?.type} • {booking.vehicleId?.fuelType}</p>
+                <h4><FaCar /> {booking.vehicleId?.name || `${booking.vehicleId?.brand || ''} ${booking.vehicleId?.model || ''}`.trim() || 'Vehicle'}</h4>
+                <p>{booking.vehicleId?.type || 'N/A'} • {booking.vehicleId?.fuelType || 'N/A'}</p>
                 <div className="vehicle-location">
                   <FaMapMarkerAlt />
-                  <span>{booking.vehicleId?.location}</span>
+                  <span>{booking.vehicleId?.location || 'Location not available'}</span>
                 </div>
               </div>
             </div>
@@ -110,12 +129,28 @@ const BookingDetails = () => {
 
           {booking.vendorId && (
             <div className="section" style={{ marginTop: '1rem' }}>
-              <h3>Vendor</h3>
-              <div className="info-item">
-                <FaPhone />
-                <div>
-                  <span className="label">Contact:</span>
-                  <span className="value">{booking.vendorId.name} • {booking.vendorId.phone || 'N/A'}</span>
+              <h3>Vendor Details</h3>
+              <div className="info-grid">
+                <div className="info-item">
+                  <FaPhone />
+                  <div>
+                    <span className="label">Name:</span>
+                    <span className="value">{booking.vendorId.name || 'N/A'}</span>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <FaPhone />
+                  <div>
+                    <span className="label">Phone:</span>
+                    <span className="value">{booking.vendorId.phone || 'N/A'}</span>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <FaMapMarkerAlt />
+                  <div>
+                    <span className="label">Address:</span>
+                    <span className="value">{booking.vendorId.address || 'N/A'}</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const SetAvailability = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user, token } = useSelector((state) => state.auth);
   const [form, setForm] = useState({ availability: true, workingHours: { start: '09:00', end: '18:00' }, workingDays: ['Mon','Tue','Wed','Thu','Fri'] });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -13,17 +13,41 @@ const SetAvailability = () => {
     try {
       setLoading(true);
       setError('');
-      // No dedicated GET; skip fetch and rely on update form defaults
+      
+      console.log('Fetching current availability settings...');
+      const res = await fetch('http://localhost:5000/api/mechanics/profile', {
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Current profile data:', data);
+        
+        // Update form with current values
+        setForm(prev => ({
+          ...prev,
+          availability: data.availability !== undefined ? data.availability : true,
+          workingHours: data.workingHours || { start: '09:00', end: '18:00' },
+          workingDays: data.workingDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+        }));
+      } else {
+        console.log('No existing profile found, using defaults');
+      }
     } catch (err) {
-      setError(err.message);
+      console.log('Error fetching current settings:', err);
+      // Continue with default values
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!user || !token) {
+      setError('Please log in to access this page');
+      return;
+    }
     fetchCurrent();
-  }, []);
+  }, [user, token]);
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,18 +67,41 @@ const SetAvailability = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!user || !token) {
+      setError('Please log in to update availability');
+      return;
+    }
+    
     try {
       setSaving(true);
       setError('');
       setSuccess('');
-      const res = await fetch('/api/mechanics/availability', {
+      
+      console.log('Submitting availability form:', form);
+      console.log('Token:', token ? 'Present' : 'Missing');
+      console.log('Form data being sent:', JSON.stringify(form, null, 2));
+      
+      const res = await fetch('http://localhost:5000/api/mechanics/availability', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user?.token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error((await res.json()).message || 'Failed to update availability');
-      setSuccess('Availability updated');
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to update availability');
+      }
+      
+      const result = await res.json();
+      console.log('Success response:', result);
+      setSuccess(`Availability updated successfully! Working hours: ${form.workingHours.start} - ${form.workingHours.end}, Days: ${form.workingDays.join(', ')}`);
     } catch (err) {
+      console.error('Form submission error:', err);
       setError(err.message);
     } finally {
       setSaving(false);
@@ -99,7 +146,34 @@ const SetAvailability = () => {
               ))}
             </div>
           </div>
-          <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+          <button 
+            className="btn btn-primary" 
+            type="submit" 
+            disabled={saving}
+            onClick={(e) => {
+              console.log('Button clicked!');
+              if (!e.defaultPrevented) {
+                console.log('Form will submit normally');
+              }
+            }}
+          >
+            {saving ? 'Saving...' : 'Update Availability'}
+          </button>
+          
+          {/* Fallback button for testing */}
+          <button 
+            className="btn btn-secondary" 
+            type="button" 
+            disabled={saving}
+            onClick={(e) => {
+              e.preventDefault();
+              console.log('Fallback button clicked!');
+              onSubmit(e);
+            }}
+            style={{ marginLeft: '10px' }}
+          >
+            {saving ? 'Saving...' : 'Test Update'}
+          </button>
         </form>
       )}
     </div>

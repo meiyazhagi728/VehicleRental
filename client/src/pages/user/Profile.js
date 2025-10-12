@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import api from '../../utils/api';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const [form, setForm] = useState({ name: '', phone: '', address: '' });
+  const [viewMode, setViewMode] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -13,17 +15,8 @@ const Profile = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await fetch('/api/users/profile', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to load profile');
-      }
-      const data = await response.json();
+      const response = await api.get('/users/profile');
+      const data = response.data;
       setForm({ name: data.name || '', phone: data.phone || '', address: data.address || '' });
     } catch (err) {
       setError(err.message);
@@ -45,18 +38,7 @@ const Profile = () => {
       setSaving(true);
       setError('');
       setSuccess('');
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify(form),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to update profile');
-      }
+      await api.put('/users/profile', form);
       await fetchProfile();
       setSuccess('Profile updated successfully');
     } catch (err) {
@@ -86,23 +68,49 @@ const Profile = () => {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <form onSubmit={onSubmit} className="card" style={{ padding: '1rem', maxWidth: 600 }}>
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label htmlFor="name">Name</label>
-            <input id="name" name="name" value={form.name} onChange={onChange} className="form-control" />
+        <div className="card" style={{ padding: '1rem', maxWidth: 600 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0 }}>Profile Details</h2>
+            <button className="btn btn-outline" onClick={() => setViewMode(!viewMode)}>
+              {viewMode ? 'Edit' : 'Cancel'}
+            </button>
           </div>
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label htmlFor="phone">Phone</label>
-            <input id="phone" name="phone" value={form.phone} onChange={onChange} className="form-control" />
-          </div>
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label htmlFor="address">Address</label>
-            <textarea id="address" name="address" value={form.address} onChange={onChange} className="form-control" />
-          </div>
-          <button className="btn btn-primary" type="submit" disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </form>
+
+          {viewMode ? (
+            <div className="profile-view">
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label>Name</label>
+                <div className="form-control" style={{ background: '#f8f9fa' }}>{form.name}</div>
+              </div>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label>Phone</label>
+                <div className="form-control" style={{ background: '#f8f9fa' }}>{form.phone}</div>
+              </div>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label>Address</label>
+                <div className="form-control" style={{ background: '#f8f9fa' }}>{form.address}</div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={onSubmit}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label htmlFor="name">Name</label>
+                <input id="name" name="name" value={form.name} onChange={onChange} className="form-control" />
+              </div>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label htmlFor="phone">Phone</label>
+                <input id="phone" name="phone" value={form.phone} onChange={onChange} className="form-control" />
+              </div>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label htmlFor="address">Address</label>
+                <textarea id="address" name="address" value={form.address} onChange={onChange} className="form-control" />
+              </div>
+              <button className="btn btn-primary" type="submit" disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </form>
+          )}
+        </div>
       )}
     </div>
   );

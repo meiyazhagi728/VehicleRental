@@ -31,7 +31,7 @@ const VendorMechanics = () => {
 
   const fetchMechanics = async () => {
     try {
-      const response = await axios.get("/api/mechanics", {
+      const response = await axios.get("http://localhost:5000/api/mechanics", {
         headers: {
           Authorization: `Bearer ${user?.token}`
         }
@@ -45,7 +45,7 @@ const VendorMechanics = () => {
 
   const fetchAssociatedMechanics = async () => {
     try {
-      const response = await axios.get("/api/vehicles/vendor/mechanics", {
+      const response = await axios.get("http://localhost:5000/api/vehicles/vendor/mechanics", {
         headers: {
           Authorization: `Bearer ${user?.token}`
         }
@@ -60,7 +60,7 @@ const VendorMechanics = () => {
 
   const handleAssociateMechanic = async (mechanicId) => {
     try {
-      await axios.post(`/api/vehicles/vendor/mechanics/${mechanicId}/associate`, {}, {
+      await axios.post(`http://localhost:5000/api/vehicles/vendor/mechanics/${mechanicId}/associate`, {}, {
         headers: {
           Authorization: `Bearer ${user?.token}`
         }
@@ -76,7 +76,7 @@ const VendorMechanics = () => {
   const handleDisassociateMechanic = async (mechanicId) => {
     if (window.confirm("Are you sure you want to remove this mechanic association?")) {
       try {
-        await axios.delete(`/api/vehicles/vendor/mechanics/${mechanicId}/disassociate`, {
+        await axios.delete(`http://localhost:5000/api/vehicles/vendor/mechanics/${mechanicId}/disassociate`, {
           headers: {
             Authorization: `Bearer ${user?.token}`
           }

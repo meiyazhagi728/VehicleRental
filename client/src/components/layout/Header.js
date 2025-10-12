@@ -6,7 +6,8 @@ import { FaUser, FaCog, FaGlobe, FaSignOutAlt } from 'react-icons/fa';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { user } = useSelector((state) => state.auth);
+  const authState = useSelector((state) => state?.auth) || {};
+  const { user } = authState;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -18,6 +19,24 @@ const Header = () => {
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  React.useEffect(() => {
+    const onClick = (e) => {
+      const menu = document.querySelector('.user-menu');
+      if (menu && !menu.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+
+  // Close dropdown on route changes by listening to popstate
+  React.useEffect(() => {
+    const onPop = () => setIsDropdownOpen(false);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   return (
     <header className="header">
@@ -37,18 +56,19 @@ const Header = () => {
             <Link to="/mechanics" className="nav-link">
               Mechanic
             </Link>
-            <Link to="/support" className="nav-link">
-              Support
+            {user && (
+              <Link to="/my-bookings" className="nav-link">
+                My Bookings
+              </Link>
+            )}
+            <Link to="/mechanic-bookings" className="nav-link">
+              Mechanic Bookings
             </Link>
+            
           </nav>
 
           <div className="header-actions">
-            <button className="btn btn-outline" title="Settings">
-              <FaCog />
-            </button>
-            <button className="btn btn-outline" title="Language">
-              <FaGlobe />
-            </button>
+            
 
             {user ? (
               <div className="user-menu">
@@ -63,7 +83,10 @@ const Header = () => {
 
                 {isDropdownOpen && (
                   <div className="dropdown-menu">
-                    <Link to="/dashboard" className="dropdown-item">
+                    <Link 
+                      to="/dashboard/redirect"
+                      className="dropdown-item"
+                    >
                       Dashboard
                     </Link>
                     <Link to="/profile" className="dropdown-item">
@@ -90,7 +113,7 @@ const Header = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .user-menu {
           position: relative;
         }
@@ -99,7 +122,11 @@ const Header = () => {
           position: absolute;
           top: 100%;
           right: 0;
-          background: var(--white-color);
+          background: var(--blue-glass-bg);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid var(--blue-glass-border);
+          box-shadow: var(--blue-glass-shadow);
           border: 1px solid var(--grey-300);
           border-radius: var(--border-radius);
           box-shadow: var(--shadow-lg);

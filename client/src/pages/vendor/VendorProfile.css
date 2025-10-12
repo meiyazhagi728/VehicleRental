@@ -19,7 +19,11 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #6c757d;
+  background: var(--blue-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--blue-glass-border);
+  box-shadow: var(--blue-glass-shadow);
   color: white;
   border: none;
   border-radius: 8px;
@@ -29,7 +33,7 @@
 }
 
 .back-btn:hover {
-  background: #495057;
+  background: var(--accent-color);
   transform: translateY(-2px);
 }
 
@@ -61,7 +65,11 @@
 }
 
 .edit-btn:disabled {
-  background: #6c757d;
+  background: var(--blue-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--blue-glass-border);
+  box-shadow: var(--blue-glass-shadow);
   cursor: not-allowed;
   transform: none;
 }
@@ -82,7 +90,7 @@
   display: flex;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #6c757d, #495057);
+  background: var(--blue-shard-gradient);
   color: white;
 }
 

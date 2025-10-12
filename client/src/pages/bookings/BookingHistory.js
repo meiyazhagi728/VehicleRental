@@ -1,18 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getUserBookings } from '../../store/slices/bookingSlice';
-import { FaCalendar, FaCar, FaMapMarkerAlt, FaMoneyBillWave, FaClock } from 'react-icons/fa';
+import { FaCalendar, FaCar, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaFilter } from 'react-icons/fa';
 import './BookingHistory.css';
 
 const BookingHistory = () => {
   const dispatch = useDispatch();
   const { bookings, isLoading } = useSelector((state) => state.bookings);
   const { user } = useSelector((state) => state.auth);
+  const [statusFilter, setStatusFilter] = useState('completed');
 
   useEffect(() => {
+    // Fetch all bookings
     dispatch(getUserBookings());
   }, [dispatch]);
+
+  // Filter bookings based on status
+  const filteredBookings = bookings.filter(booking => {
+    if (statusFilter === 'all') return true;
+    return booking.status === statusFilter;
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -58,17 +66,34 @@ const BookingHistory = () => {
           <p>Track your vehicle rental history</p>
         </div>
 
+        <div className="filter-section">
+          <div className="filter-group">
+            <FaFilter className="filter-icon" />
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="status-filter"
+            >
+              <option value="completed">Completed Bookings</option>
+              <option value="all">All Bookings</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="active">Active</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
         <div className="bookings-list">
-          {bookings.length === 0 ? (
+          {filteredBookings.length === 0 ? (
             <div className="no-bookings">
-              <h3>No bookings found</h3>
-              <p>You haven't made any bookings yet.</p>
+              <h3>No {statusFilter === 'all' ? '' : statusFilter} bookings found</h3>
+              <p>{statusFilter === 'completed' ? 'You have no completed bookings yet.' : 'You haven\'t made any bookings yet.'}</p>
               <Link to="/vehicles" className="btn btn-primary">
                 Browse Vehicles
               </Link>
             </div>
           ) : (
-            bookings.map((booking) => (
+            filteredBookings.map((booking) => (
               <div key={booking._id} className="booking-card">
                 <div className="booking-header">
                   <div className="booking-id">
@@ -107,14 +132,14 @@ const BookingHistory = () => {
                         <FaCalendar />
                         <div>
                           <span className="label">Start Date:</span>
-                          <span className="value">{new Date(booking.startDate).toLocaleDateString()}</span>
+                          <span className="value">{new Date(booking.startDate).toLocaleString()}</span>
                         </div>
                       </div>
                       <div className="info-item">
                         <FaCalendar />
                         <div>
                           <span className="label">End Date:</span>
-                          <span className="value">{new Date(booking.endDate).toLocaleDateString()}</span>
+                          <span className="value">{new Date(booking.endDate).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -178,12 +203,40 @@ const BookingHistory = () => {
                     View Details
                   </Link>
                   {booking.status === 'pending' && (
-                    <button className="btn btn-secondary">
+                    <button className="btn btn-secondary" onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/bookings/${booking._id}/status`, {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${user?.token}`,
+                          },
+                          body: JSON.stringify({ status: 'cancelled', cancellationReason: 'User cancelled from history page' })
+                        });
+                        if (res.ok) {
+                          dispatch(getUserBookings());
+                        }
+                      } catch (e) {}
+                    }}>
                       Cancel Booking
                     </button>
                   )}
                   {booking.status === 'confirmed' && booking.paymentStatus === 'pending' && (
-                    <button className="btn btn-primary">
+                    <button className="btn btn-primary" onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/bookings/${booking._id}/payment`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${user?.token}`,
+                          },
+                          body: JSON.stringify({ paymentMethod: 'card' })
+                        });
+                        if (res.ok) {
+                          dispatch(getUserBookings());
+                        }
+                      } catch (e) {}
+                    }}>
                       Pay Now
                     </button>
                   )}

@@ -1,7 +1,7 @@
 /* Booking Details Page Styles */
 .booking-details-page {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: var(--bg-tertiary);
   padding: 2rem 0;
 }
 
@@ -17,14 +17,14 @@
 }
 
 .page-header h1 {
-  color: #495057;
+  color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
 }
 
 .page-header p {
-  color: #6c757d;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0;
 }
@@ -35,7 +35,7 @@
   align-items: center;
   min-height: 50vh;
   font-size: 1.2rem;
-  color: #6c757d;
+  color: var(--text-secondary);
 }
 
 .alert {

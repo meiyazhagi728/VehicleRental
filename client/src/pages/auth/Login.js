@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { login, reset } from '../../store/slices/authSlice';
+import { login, clearError } from '../../store/slices/authSlice';
 import { toast } from 'react-toastify';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -16,9 +16,8 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { user, isLoading, isError, isSuccess, message } = useSelector(
-    (state) => state.auth
-  );
+  const authState = useSelector((state) => state?.auth) || {};
+  const { user, isLoading, isError, isSuccess, message } = authState;
 
   useEffect(() => {
     if (isError) {
@@ -26,10 +25,14 @@ const Login = () => {
     }
 
     if (isSuccess || user) {
-      navigate('/dashboard');
+      const r = user?.role;
+      if (r === 'admin') navigate('/admin');
+      else if (r === 'vendor') navigate('/vendor');
+      else if (r === 'mechanic') navigate('/mechanic/dashboard');
+      else navigate('/dashboard');
     }
 
-    dispatch(reset());
+    dispatch(clearError());
   }, [user, isError, isSuccess, message, navigate, dispatch]);
 
   const onChange = (e) => {
@@ -60,8 +63,8 @@ const Login = () => {
 
   return (
     <div className="auth-page">
-      <div className="form-container">
-        <h2 className="form-title">Login to Your Account</h2>
+      <div className="form-container" style={{padding: '2rem'}}>
+        <h2 className="form-title">Welcome Back</h2>
         <form onSubmit={onSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -87,6 +90,7 @@ const Login = () => {
                 placeholder="Enter your password"
                 onChange={onChange}
                 required
+                minLength="6"
               />
               <button
                 type="button"
@@ -116,7 +120,7 @@ const Login = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--grey-100);
+          background: var(--bg-tertiary);
           padding: 2rem 0;
         }
 
@@ -127,14 +131,14 @@ const Login = () => {
         .form-group label {
           display: block;
           margin-bottom: 0.5rem;
-          color: var(--grey-700);
+          color: var(--text-primary);
           font-weight: 500;
         }
 
         .form-group input {
           width: 100%;
           padding: 0.75rem;
-          border: 2px solid var(--grey-300);
+          border: 2px solid var(--border-light);
           border-radius: var(--border-radius);
           font-size: 1rem;
           transition: border-color 0.3s ease;

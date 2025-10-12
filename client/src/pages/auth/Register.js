@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { register, reset } from '../../store/slices/authSlice';
+import { register, clearError } from '../../store/slices/authSlice';
 import { toast } from 'react-toastify';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -21,9 +21,8 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { user, isLoading, isError, isSuccess, message } = useSelector(
-    (state) => state.auth
-  );
+  const authState = useSelector((state) => state?.auth) || {};
+  const { user, isLoading, isError, isSuccess, message } = authState;
 
   useEffect(() => {
     if (isError) {
@@ -34,7 +33,7 @@ const Register = () => {
       navigate('/dashboard');
     }
 
-    dispatch(reset());
+    dispatch(clearError());
   }, [user, isError, isSuccess, message, navigate, dispatch]);
 
   const onChange = (e) => {
@@ -73,7 +72,7 @@ const Register = () => {
 
   return (
     <div className="auth-page">
-      <div className="form-container">
+      <div className="form-container" style={{padding: '2rem'}}>
         <h2 className="form-title">Create Your Account</h2>
         <form onSubmit={onSubmit}>
           <div className="form-group">
@@ -194,7 +193,7 @@ const Register = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--grey-100);
+          background: var(--bg-tertiary);
           padding: 2rem 0;
         }
 
@@ -205,7 +204,7 @@ const Register = () => {
         .form-group label {
           display: block;
           margin-bottom: 0.5rem;
-          color: var(--grey-700);
+          color: var(--text-primary);
           font-weight: 500;
         }
 
@@ -213,7 +212,7 @@ const Register = () => {
         .form-group select {
           width: 100%;
           padding: 0.75rem;
-          border: 2px solid var(--grey-300);
+          border: 2px solid var(--border-light);
           border-radius: var(--border-radius);
           font-size: 1rem;
           transition: border-color 0.3s ease;

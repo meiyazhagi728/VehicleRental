@@ -17,6 +17,8 @@ const VehicleDetail = () => {
   const [bookingData, setBookingData] = useState({
     startDate: null,
     endDate: null,
+    startTime: '',
+    endTime: '',
     pickupLocation: '',
     dropLocation: '',
     driverDetails: {
@@ -29,9 +31,22 @@ const VehicleDetail = () => {
     rating: 5,
     comment: ''
   });
+  const [locations, setLocations] = useState([]);
 
   useEffect(() => {
     dispatch(getVehicle(id));
+    // Load admin-provided locations
+    (async () => {
+      try {
+        const res = await fetch('/api/locations');
+        if (res.ok) {
+          const data = await res.json();
+          setLocations(Array.isArray(data?.locations) ? data.locations : []);
+        }
+      } catch (err) {
+        // ignore
+      }
+    })();
   }, [dispatch, id]);
 
   const handleBookingSubmit = async (e) => {
@@ -41,11 +56,32 @@ const VehicleDetail = () => {
       return;
     }
 
+    // Combine date and time for start and end
+    const startDateTime = new Date(bookingData.startDate);
+    const endDateTime = new Date(bookingData.endDate);
+    
+    if (bookingData.startTime) {
+      const [startHours, startMinutes] = bookingData.startTime.split(':');
+      startDateTime.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+    }
+    
+    if (bookingData.endTime) {
+      const [endHours, endMinutes] = bookingData.endTime.split(':');
+      endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+    }
+
+    // Calculate total amount based on vehicle price and duration
+    const days = Math.ceil((endDateTime - startDateTime) / (1000 * 60 * 60 * 24));
+    const totalAmount = vehicle ? vehicle.pricePerDay * days : 0;
+
     const bookingPayload = {
       vehicleId: id,
-      ...bookingData,
-      startDate: bookingData.startDate.toISOString(),
-      endDate: bookingData.endDate.toISOString()
+      startDate: startDateTime.toISOString(),
+      endDate: endDateTime.toISOString(),
+      pickupLocation: bookingData.pickupLocation,
+      dropoffLocation: bookingData.dropLocation,
+      totalAmount: totalAmount,
+      driverDetails: bookingData.driverDetails
     };
 
     try {
@@ -59,10 +95,14 @@ const VehicleDetail = () => {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(addVehicleReview({ id, reviewData })).unwrap();
+      console.log('Submitting review:', { id, reviewData });
+      const result = await dispatch(addVehicleReview({ id, reviewData: { ...reviewData, rating: Number(reviewData.rating) } })).unwrap();
+      console.log('Review submitted successfully:', result);
       setReviewData({ rating: 5, comment: '' });
+      alert('Review submitted successfully!');
     } catch (error) {
       console.error('Review submission failed:', error);
+      alert('Failed to submit review: ' + (error.message || error));
     }
   };
 
@@ -73,6 +113,15 @@ const VehicleDetail = () => {
       </div>
     );
   }
+
+  // Derive review stats (use server fields if present, else compute from reviews)
+  const reviews = Array.isArray(vehicle.reviews) ? vehicle.reviews : [];
+  const derivedNum = (typeof vehicle.totalReviews === 'number' && vehicle.totalReviews >= 0)
+    ? vehicle.totalReviews
+    : reviews.length;
+  const derivedAvg = (typeof vehicle.rating === 'number' && vehicle.rating >= 0)
+    ? vehicle.rating
+    : (reviews.length ? reviews.reduce((s, r) => s + Number(r?.rating || 0), 0) / reviews.length : 0);
 
   return (
     <div className="vehicle-detail-page">
@@ -99,9 +148,11 @@ const VehicleDetail = () => {
             </div>
 
             <div className="vehicle-rating">
-              <FaStar />
-              <span>{vehicle.calculateAverageRating ? vehicle.calculateAverageRating() : 0}</span>
-              <span className="review-count">({vehicle.reviews?.length || 0} reviews)</span>
+              {[...Array(5)].map((_, i) => (
+                <FaStar key={i} className={i < Math.round(derivedAvg) ? 'star-filled' : 'star-empty'} />
+              ))}
+              <span>{derivedAvg.toFixed(1)}</span>
+              <span className="review-count">({derivedNum} reviews)</span>
             </div>
 
             <div className="vehicle-price">
@@ -152,6 +203,25 @@ const VehicleDetail = () => {
                   />
                 </div>
                 <div className="form-group">
+                  <label>Start Time</label>
+                  <input
+                    type="time"
+                    value={bookingData.startTime}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, startTime: e.target.value }))}
+                    className="form-control"
+                    onClick={(e) => {
+                      // Force time picker to open on click
+                      if (e.target.showPicker) {
+                        e.target.showPicker();
+                      }
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label>End Date</label>
                   <DatePicker
                     selected={bookingData.endDate}
@@ -159,6 +229,22 @@ const VehicleDetail = () => {
                     minDate={bookingData.startDate || new Date()}
                     placeholderText="Select end date"
                     className="form-control"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>End Time</label>
+                  <input
+                    type="time"
+                    value={bookingData.endTime}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, endTime: e.target.value }))}
+                    className="form-control"
+                    onClick={(e) => {
+                      // Force time picker to open on click
+                      if (e.target.showPicker) {
+                        e.target.showPicker();
+                      }
+                    }}
+                    required
                   />
                 </div>
               </div>
@@ -170,6 +256,7 @@ const VehicleDetail = () => {
                   value={bookingData.pickupLocation}
                   onChange={(e) => setBookingData(prev => ({ ...prev, pickupLocation: e.target.value }))}
                   placeholder="Enter pickup location"
+                  list="admin-locations"
                   required
                 />
               </div>
@@ -181,6 +268,7 @@ const VehicleDetail = () => {
                   value={bookingData.dropLocation}
                   onChange={(e) => setBookingData(prev => ({ ...prev, dropLocation: e.target.value }))}
                   placeholder="Enter drop location"
+                  list="admin-locations"
                   required
                 />
               </div>
@@ -233,12 +321,27 @@ const VehicleDetail = () => {
               <button type="submit" className="btn btn-primary btn-large">
                 Book Now
               </button>
+              <datalist id="admin-locations">
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.name} />
+                ))}
+              </datalist>
             </form>
           </div>
         )}
 
         <div className="reviews-section">
           <h2>Reviews</h2>
+          <div className="average-rating">
+            <div className="average-stars">
+              {[...Array(5)].map((_, i) => (
+                <FaStar key={i} className={i < Math.round(derivedAvg) ? 'star-filled' : 'star-empty'} />
+              ))}
+            </div>
+            <span className="average-text">
+              Average: {derivedAvg.toFixed(1)} / 5 ({derivedNum} reviews)
+            </span>
+          </div>
           {vehicle.reviews && vehicle.reviews.length > 0 ? (
             <div className="reviews-list">
               {vehicle.reviews.map((review, index) => (
@@ -246,7 +349,7 @@ const VehicleDetail = () => {
                   <div className="review-header">
                     <div className="review-rating">
                       {[...Array(5)].map((_, i) => (
-                        <FaStar key={i} className={i < review.rating ? 'star-filled' : 'star-empty'} />
+                        <FaStar key={i} className={i < Number(review.rating) ? 'star-filled' : 'star-empty'} />
                       ))}
                     </div>
                     <span className="review-date">
@@ -261,9 +364,10 @@ const VehicleDetail = () => {
             <p>No reviews yet.</p>
           )}
 
-          {user && (
+          {user ? (
             <div className="add-review">
               <h3>Add a Review</h3>
+              {console.log('User is logged in, showing review form')}
               <form onSubmit={handleReviewSubmit} className="review-form">
                 <div className="form-group">
                   <label>Rating</label>
@@ -290,6 +394,10 @@ const VehicleDetail = () => {
                   Submit Review
                 </button>
               </form>
+            </div>
+          ) : (
+            <div className="login-prompt">
+              <p>Please log in to add a review.</p>
             </div>
           )}
         </div>

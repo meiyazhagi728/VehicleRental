@@ -1,0 +1,569 @@
+/* Quick Action Modal Styles */
+.quick-action-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  overflow: auto;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-sizing: border-box;
+  /* Fallback for older browsers */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure proper centering on all devices */
+.quick-action-modal-overlay::before {
+  content: '';
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.quick-action-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  justify-self: center;
+}
+
+.quick-action-modal.modal-sm {
+  max-width: 500px;
+}
+
+.quick-action-modal.modal-md {
+  max-width: 800px;
+}
+
+.quick-action-modal.modal-lg {
+  max-width: 1000px;
+}
+
+.quick-action-modal.modal-fullscreen {
+  max-width: 98vw;
+  max-height: 95vh;
+}
+
+.quick-action-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  flex-shrink: 0;
+  min-height: 60px;
+}
+
+.quick-action-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-action-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.modal-action-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.modal-add-btn:hover {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.5);
+  color: white;
+}
+
+.modal-edit-btn:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: white;
+}
+
+.modal-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: white;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.quick-action-modal-body {
+  padding: 1.5rem;
+  max-height: calc(90vh - 80px);
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+/* Ensure tables can expand properly */
+.quick-action-modal-body .table-responsive {
+  width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.quick-action-modal-body .table-responsive table {
+  width: 100%;
+  min-width: 800px; /* Increased minimum width for better readability */
+  margin: 0;
+}
+
+/* Content alignment fixes */
+.quick-action-modal-body > * {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure proper alignment for all content types */
+.quick-action-modal-body .form-group,
+.quick-action-modal-body .table-container,
+.quick-action-modal-body .card,
+.quick-action-modal-body .list-group {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* Fix table alignment and display */
+.quick-action-modal-body table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.quick-action-modal-body table th,
+.quick-action-modal-body table td {
+  text-align: left;
+  vertical-align: middle;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: none;
+  min-width: 80px; /* Minimum column width */
+}
+
+.quick-action-modal-body table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #d1d5db;
+}
+
+.quick-action-modal-body table tr:hover {
+  background: #f9fafb;
+}
+
+.quick-action-modal-body table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.quick-action-modal-body table tr:nth-child(even):hover {
+  background: #f0f0f0;
+}
+
+/* Specific column width handling */
+.quick-action-modal-body table th:nth-child(1),
+.quick-action-modal-body table td:nth-child(1) {
+  min-width: 150px; /* ID columns - increased width */
+}
+
+.quick-action-modal-body table th:nth-child(2),
+.quick-action-modal-body table td:nth-child(2) {
+  min-width: 200px; /* Name columns - increased width */
+}
+
+.quick-action-modal-body table th:nth-child(3),
+.quick-action-modal-body table td:nth-child(3) {
+  min-width: 120px; /* Status columns */
+}
+
+.quick-action-modal-body table th:last-child,
+.quick-action-modal-body table td:last-child {
+  min-width: 150px; /* Action columns - increased width */
+}
+
+/* Table container for horizontal scroll */
+.quick-action-modal-body .table-container {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.quick-action-modal-body .table-container table {
+  min-width: 100%;
+  margin: 0;
+}
+
+/* Enhanced table display utilities */
+.quick-action-modal-body .table-full-width {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.quick-action-modal-body .table-auto-width {
+  width: auto;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+.quick-action-modal-body .table-scrollable {
+  overflow: auto;
+  max-height: 400px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+/* Better text wrapping for table content */
+.quick-action-modal-body table td {
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.4;
+}
+
+/* Status badges in tables */
+.quick-action-modal-body table .badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-action-modal-body table .badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.quick-action-modal-body table .badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.quick-action-modal-body table .badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.quick-action-modal-body table .badge-info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* Fix form alignment */
+.quick-action-modal-body .form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quick-action-modal-body .form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.quick-action-modal-body .form-group {
+  margin-bottom: 1rem;
+}
+
+.quick-action-modal-body .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.quick-action-modal-body .form-group input,
+.quick-action-modal-body .form-group select,
+.quick-action-modal-body .form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.quick-action-modal-body .form-group input:focus,
+.quick-action-modal-body .form-group select:focus,
+.quick-action-modal-body .form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Table alignment fixes */
+.quick-action-modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.quick-action-modal-body table th,
+.quick-action-modal-body table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quick-action-modal-body table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.quick-action-modal-body table tr:hover {
+  background: #f9fafb;
+}
+
+/* Button alignment fixes */
+.quick-action-modal-body .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.quick-action-modal-body .btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.quick-action-modal-body .btn-primary:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.quick-action-modal-body .btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.quick-action-modal-body .btn-secondary:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.quick-action-modal-body .btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.quick-action-modal-body .btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .quick-action-modal-overlay {
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .quick-action-modal {
+    max-height: 95vh;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .quick-action-modal.modal-lg {
+    max-width: 95vw;
+  }
+
+  .quick-action-modal.modal-md {
+    max-width: 90vw;
+  }
+
+  .quick-action-modal-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+    min-height: auto;
+  }
+
+  .modal-header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .quick-action-modal-body {
+    padding: 1rem;
+    max-height: calc(95vh - 120px);
+    overflow: auto;
+  }
+
+  .quick-action-modal-body .btn {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Mobile table handling */
+  .quick-action-modal-body .table-responsive {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .quick-action-modal-body table {
+    min-width: 500px;
+    font-size: 0.8rem;
+  }
+
+  .quick-action-modal-body table th,
+  .quick-action-modal-body table td {
+    padding: 0.5rem 0.25rem;
+    min-width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-action-modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+
+  .quick-action-modal {
+    max-height: 98vh;
+    border-radius: 8px;
+    max-width: 98vw;
+  }
+
+  .quick-action-modal-header {
+    padding: 0.75rem;
+    min-height: auto;
+  }
+
+  .quick-action-modal-body {
+    padding: 0.75rem;
+    max-height: calc(98vh - 100px);
+    overflow: auto;
+  }
+
+  .modal-action-btn,
+  .modal-close-btn {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .modal-header-actions {
+    gap: 0.25rem;
+  }
+
+  /* Small screen table handling */
+  .quick-action-modal-body .table-responsive {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 4px;
+  }
+
+  .quick-action-modal-body table {
+    min-width: 400px;
+    font-size: 0.75rem;
+  }
+
+  .quick-action-modal-body table th,
+  .quick-action-modal-body table td {
+    padding: 0.4rem 0.2rem;
+    min-width: 50px;
+  }
+
+  .quick-action-modal-body table th:nth-child(1),
+  .quick-action-modal-body table td:nth-child(1) {
+    min-width: 80px;
+  }
+
+  .quick-action-modal-body table th:nth-child(2),
+  .quick-action-modal-body table td:nth-child(2) {
+    min-width: 100px;
+  }
+}

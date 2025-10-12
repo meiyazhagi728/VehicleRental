@@ -158,15 +158,24 @@ vehicleSchema.index({ coordinates: '2dsphere' });
 // Index for search queries
 vehicleSchema.index({ name: 'text', description: 'text', location: 'text' });
 
-// Calculate average rating
+// Performance indexes for common queries
+vehicleSchema.index({ type: 1, isAvailable: 1, createdAt: -1 });
+vehicleSchema.index({ fuelType: 1, isAvailable: 1 });
+vehicleSchema.index({ pricePerDay: 1, isAvailable: 1 });
+vehicleSchema.index({ 'location.city': 1, isAvailable: 1 });
+vehicleSchema.index({ vendorId: 1, isAvailable: 1 });
+vehicleSchema.index({ make: 1, model: 1 });
+vehicleSchema.index({ isAvailable: 1, createdAt: -1 });
+
+// Calculate and persist average rating and total reviews
 vehicleSchema.methods.calculateAverageRating = function() {
   if (this.reviews.length === 0) {
     this.rating = 0;
     this.totalReviews = 0;
   } else {
-    const totalRating = this.reviews.reduce((sum, review) => sum + review.rating, 0);
-    this.rating = totalRating / this.reviews.length;
+    const totalRating = this.reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
     this.totalReviews = this.reviews.length;
+    this.rating = this.totalReviews ? totalRating / this.totalReviews : 0;
   }
   return this.save();
 };

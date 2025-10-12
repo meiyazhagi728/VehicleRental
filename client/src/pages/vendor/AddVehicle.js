@@ -99,7 +99,7 @@ const AddVehicle = () => {
         }
       };
 
-      const response = await axios.post("/api/vehicles", payload, {
+      const response = await axios.post("http://localhost:5000/api/vehicles", payload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user?.token}`

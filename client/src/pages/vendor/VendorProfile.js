@@ -46,7 +46,7 @@ const VendorProfile = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await axios.put("/api/users/profile", profile, {
+      const response = await axios.put("http://localhost:5000/api/users/profile", profile, {
         headers: {
           Authorization: `Bearer ${user?.token}`
         }

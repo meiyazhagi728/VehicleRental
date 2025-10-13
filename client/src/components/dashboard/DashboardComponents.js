@@ -119,6 +119,7 @@ const DataTable = ({
             <tr>
               {columns.map((column, index) => (
                 <th key={index} className={column.className || ''}>
+                  {console.log(column)}
                   {column.header}
                 </th>
               ))}
@@ -129,6 +130,7 @@ const DataTable = ({
               <tr key={rowIndex}>
                 {columns.map((column, colIndex) => (
                   <td key={colIndex} className={column.className || ''}>
+                    {console.log(row)}
                     {column.render ? column.render(row) : row[column.key]}
                   </td>
                 ))}

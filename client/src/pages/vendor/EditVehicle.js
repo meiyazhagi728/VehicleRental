@@ -1,5 +1,5 @@
-﻿import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -9,11 +9,14 @@ import axios from "axios";
 import "./AddVehicle.css";
 import { useSelector } from "react-redux";
 
-const AddVehicle = () => {
+const EditVehicle = () => {
   const navigate = useNavigate();
+  const { vehicleId } = useParams();
   const { user } = useSelector((state) => state.auth);
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [vehicle, setVehicle] = useState(null);
 
   const schema = yup.object().shape({
     name: yup.string().required("Vehicle name is required").min(2, "Name must be at least 2 characters"),
@@ -35,13 +38,76 @@ const AddVehicle = () => {
     permitExpiry: yup.date().required("Permit expiry date is required")
   });
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm({
     resolver: yupResolver(schema)
   });
 
+  // Fetch vehicle data
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://localhost:5000/api/vehicles/${vehicleId}`, {
+          headers: {
+            Authorization: `Bearer ${user?.token}`
+          }
+        });
+        
+        const vehicleData = response.data;
+        setVehicle(vehicleData);
+        
+        // Set form values
+        setValue("name", vehicleData.name);
+        setValue("type", vehicleData.type);
+        setValue("fuelType", vehicleData.fuelType);
+        setValue("brand", vehicleData.brand);
+        setValue("model", vehicleData.model);
+        setValue("year", vehicleData.year);
+        setValue("description", vehicleData.description);
+        setValue("pricePerDay", vehicleData.pricePerDay);
+        setValue("location", vehicleData.location);
+        setValue("seats", vehicleData.specifications?.seats || "");
+        setValue("transmission", vehicleData.specifications?.transmission || "");
+        setValue("mileage", vehicleData.specifications?.mileage || "");
+        setValue("engineCapacity", vehicleData.specifications?.engineCapacity || "");
+        setValue("color", vehicleData.specifications?.color || "");
+        setValue("registrationNumber", vehicleData.specifications?.registrationNumber || "");
+        setValue("insuranceExpiry", vehicleData.specifications?.insuranceExpiry ? 
+          new Date(vehicleData.specifications.insuranceExpiry).toISOString().split('T')[0] : "");
+        setValue("permitExpiry", vehicleData.specifications?.permitExpiry ? 
+          new Date(vehicleData.specifications.permitExpiry).toISOString().split('T')[0] : "");
+        
+        // Set existing images
+        if (vehicleData.images && vehicleData.images.length > 0) {
+          const existingImages = vehicleData.images.map((img, index) => ({
+            file: null,
+            preview: img,
+            id: `existing-${index}`,
+            isExisting: true
+          }));
+          setImages(existingImages);
+        }
+        
+      } catch (error) {
+        console.error("Error fetching vehicle:", error);
+        toast.error("Failed to load vehicle data");
+        navigate("/vendor/manage-vehicles");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (vehicleId && user?.token) {
+      fetchVehicle();
+    }
+  }, [vehicleId, user?.token, setValue, navigate]);
+
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length + images.length > 5) {
+    const existingImages = images.filter(img => img.isExisting);
+    const newImages = images.filter(img => !img.isExisting);
+    
+    if (files.length + newImages.length > 5) {
       toast.error("Maximum 5 images allowed");
       return;
     }
@@ -57,7 +123,8 @@ const AddVehicle = () => {
         setImages(prev => [...prev, {
           file,
           preview: e.target.result,
-          id: Date.now() + Math.random()
+          id: Date.now() + Math.random(),
+          isExisting: false
         }]);
       };
       reader.readAsDataURL(file);
@@ -99,35 +166,86 @@ const AddVehicle = () => {
         }
       };
 
-      const response = await axios.post("http://localhost:5000/api/vehicles", payload, {
+      console.log('Sending update payload:', payload);
+      console.log('User token:', user?.token);
+      console.log('Vehicle ID:', vehicleId);
+      
+      const response = await axios.put(`http://localhost:5000/api/vehicles/${vehicleId}`, payload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user?.token}`
         }
       });
 
-      if (response.status === 201) {
-        toast.success("Vehicle added successfully!");
+      if (response.status === 200) {
+        toast.success("Vehicle updated successfully!");
         navigate("/vendor/manage-vehicles");
       } else {
-        throw new Error("Failed to add vehicle");
+        throw new Error("Failed to update vehicle");
       }
     } catch (error) {
-      console.error("Error adding vehicle:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to add vehicle");
+      console.error("Error updating vehicle:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      
+      if (error.response?.data?.errors) {
+        // Show validation errors
+        const errorMessages = error.response.data.errors.map(err => err.msg).join(', ');
+        toast.error(`Validation errors: ${errorMessages}`);
+      } else {
+        toast.error(error.response?.data?.message || error.message || "Failed to update vehicle");
+      }
     } finally {
       setUploading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="add-vehicle-page">
+        <div className="page-header">
+          <button className="back-btn" onClick={() => navigate("/vendor/manage-vehicles")}>
+            <FaArrowLeft />
+            Back to Vehicles
+          </button>
+          <h1>Edit Vehicle</h1>
+        </div>
+        <div className="form-container">
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Loading vehicle data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!vehicle) {
+    return (
+      <div className="add-vehicle-page">
+        <div className="page-header">
+          <button className="back-btn" onClick={() => navigate("/vendor/manage-vehicles")}>
+            <FaArrowLeft />
+            Back to Vehicles
+          </button>
+          <h1>Edit Vehicle</h1>
+        </div>
+        <div className="form-container">
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Vehicle not found</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="add-vehicle-page">
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate("/vendor")}>
+        <button className="back-btn" onClick={() => navigate("/vendor/manage-vehicles")}>
           <FaArrowLeft />
-          Back to Dashboard
+          Back to Vehicles
         </button>
-        <h1>Add New Vehicle</h1>
+        <h1>Edit Vehicle</h1>
       </div>
 
       <div className="form-container">
@@ -379,7 +497,7 @@ const AddVehicle = () => {
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => navigate("/vendor/dashboard")}
+              onClick={() => navigate("/vendor/manage-vehicles")}
             >
               Cancel
             </button>
@@ -388,10 +506,10 @@ const AddVehicle = () => {
               className="btn-primary"
               disabled={uploading}
             >
-              {uploading ? "Adding Vehicle..." : (
+              {uploading ? "Updating Vehicle..." : (
                 <>
                   <FaSave />
-                  Add Vehicle
+                  Update Vehicle
                 </>
               )}
             </button>
@@ -402,4 +520,4 @@ const AddVehicle = () => {
   );
 };
 
-export default AddVehicle;
+export default EditVehicle;

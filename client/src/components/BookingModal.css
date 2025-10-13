@@ -328,3 +328,123 @@
     padding: 1rem;
   }
 }
+
+/* Login Warning Banner */
+.login-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  color: #856404;
+}
+
+.login-warning svg {
+  color: #f39c12;
+  font-size: 1.2rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.warning-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #856404;
+}
+
+.warning-content p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #856404;
+}
+
+.login-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #f39c12;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.login-link:hover {
+  background: #e67e22;
+  color: white;
+  text-decoration: none;
+}
+
+/* Driver Details Section */
+.driver-details-section {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.driver-details-section h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.driver-details-section h4::before {
+  content: "👤";
+  font-size: 1.2rem;
+}
+
+.driver-details-section .form-group {
+  margin-bottom: 1rem;
+}
+
+.driver-details-section .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.driver-details-section label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.driver-details-section input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.driver-details-section input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.driver-details-section input::placeholder {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .driver-details-section {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+}

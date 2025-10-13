@@ -13,7 +13,8 @@
     "build": "cd client && npm run build",
     "heroku-postbuild": "npm run install-client && npm run build",
     "setup": "node setup-env.js",
-    "test-db": "node test-db-connection.js"
+    "test-db": "node test-db-connection.js",
+    "seed-mechanics": "node run-seed-mechanics.js"
   },
   "keywords": [
     "vehicle",

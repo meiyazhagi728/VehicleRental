@@ -734,6 +734,12 @@ router.delete('/:id', protect, async (req, res) => {
 
     await booking.save();
 
+    // Update vehicle availability when booking is cancelled
+    await Vehicle.findByIdAndUpdate(
+      booking.vehicleId,
+      { $set: { isAvailable: true } }
+    );
+
     res.json({ message: 'Booking cancelled successfully' });
   } catch (error) {
     console.error('Cancel booking error:', error);

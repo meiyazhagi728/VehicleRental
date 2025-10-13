@@ -215,42 +215,35 @@ router.get('/nearby', async (req, res) => {
   try {
     const { lat, lng, maxDistance = 10 } = req.query;
 
-    console.log('Nearby mechanics request:', { lat, lng, maxDistance });
+    console.log('🔍 Nearby mechanics request:', { lat, lng, maxDistance });
+    console.log('🔍 Route handler called successfully');
 
     if (!lat || !lng) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
 
     const coordinates = [parseFloat(lng), parseFloat(lat)];
-    const distance = parseFloat(maxDistance) * 1000; // Convert km to meters
+    const radiusInKm = parseFloat(maxDistance);
+    const radiusInRadians = radiusInKm / 6378.1; // Earth's radius in km
 
-    console.log('Searching for mechanics within', distance, 'meters of', coordinates);
+    console.log('Searching for mechanics within', radiusInKm, 'km of', coordinates);
 
-    // Find mechanics with coordinates within the specified distance
+    // Find mechanics with coordinates within the specified distance using $geoWithin
     const mechanics = await Mechanic.find({
-      'location.coordinates': {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: coordinates
-          },
-          $maxDistance: distance
+      location: {
+        $geoWithin: {
+          $centerSphere: [coordinates, radiusInRadians]
         }
       }
     })
-    .populate('userId', 'name phone email')
     .sort({ rating: -1 });
 
     // Also find users with mechanic role who have coordinates
     const usersWithMechanicRole = await User.find({
       role: 'mechanic',
-      'location.coordinates': {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: coordinates
-          },
-          $maxDistance: distance
+      location: {
+        $geoWithin: {
+          $centerSphere: [coordinates, radiusInRadians]
         }
       }
     })

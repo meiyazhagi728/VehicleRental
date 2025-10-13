@@ -32,6 +32,7 @@ import VendorBookings from './pages/vendor/VendorBookings';
 import VendorMechanics from './pages/vendor/VendorMechanics';
 import VendorProfile from './pages/vendor/VendorProfile';
 import AddVehicle from './pages/vendor/AddVehicle';
+import EditVehicle from './pages/vendor/EditVehicle';
 import ManageVehicles from './pages/vendor/ManageVehicles';
 import VendorEarnings from './pages/vendor/VendorEarnings';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -151,6 +152,11 @@ function App() {
         <Route path="/vendor/manage-vehicles" element={
           <ProtectedRoute requiredRoles={["vendor"]} requireApproval>
             <ManageVehicles />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendor/edit-vehicle/:vehicleId" element={
+          <ProtectedRoute requiredRoles={["vendor"]} requireApproval>
+            <EditVehicle />
           </ProtectedRoute>
         } />
         <Route path="/vendor/bookings" element={

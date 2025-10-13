@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { FaCalendarAlt, FaClock, FaUser, FaPhone, FaTimes, FaCheckCircle } from 'react-icons/fa';
+import { useSelector, useDispatch } from 'react-redux';
+import { FaCalendarAlt, FaClock, FaUser, FaPhone, FaTimes, FaCheckCircle, FaExclamationTriangle, FaKey } from 'react-icons/fa';
+import { updateVehicleStatus } from '../store/slices/vehicleSlice';
 import './BookingModal.css';
 
 const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
+  const dispatch = useDispatch();
   const { user, token } = useSelector((state) => state.auth || {});
   const [bookingData, setBookingData] = useState({
     pickupDate: '',
@@ -11,7 +13,12 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
     pickupTime: '09:00',
     returnTime: '18:00',
     totalDays: 0,
-    totalAmount: 0
+    totalAmount: 0,
+    driverDetails: {
+      name: '',
+      licenseNumber: '',
+      phone: ''
+    }
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,10 +45,23 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setBookingData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Handle nested driver details
+    if (name.startsWith('driverDetails.')) {
+      const field = name.split('.')[1];
+      setBookingData(prev => ({
+        ...prev,
+        driverDetails: {
+          ...prev.driverDetails,
+          [field]: value
+        }
+      }));
+    } else {
+      setBookingData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -50,13 +70,27 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
     setError('');
 
     try {
-      if (!user) {
-        setError('Please login to book a vehicle');
+      if (!isLoggedIn) {
+        setError('Please login to book a vehicle. Click the login button in the top navigation to sign in.');
         return;
       }
 
       if (!bookingData.pickupDate || !bookingData.returnDate) {
         setError('Please select pickup and return dates');
+        return;
+      }
+
+      // Validate driver details
+      if (!bookingData.driverDetails.name.trim()) {
+        setError('Driver name is required');
+        return;
+      }
+      if (!bookingData.driverDetails.licenseNumber.trim()) {
+        setError('Driver license number is required');
+        return;
+      }
+      if (!bookingData.driverDetails.phone.trim()) {
+        setError('Driver phone number is required');
         return;
       }
 
@@ -69,8 +103,12 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
         return;
       }
 
-      if (new Date(bookingData.pickupDate) < new Date()) {
-        setError('Pickup date cannot be in the past');
+      // Allow booking up to 5 minutes in the past to account for minor time differences
+      const now = new Date();
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+      
+      if (startDateTime < fiveMinutesAgo) {
+        setError('Pickup date and time cannot be in the past');
         return;
       }
 
@@ -83,9 +121,9 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
         dropLocation: vehicle.location?.city || vehicle.location || 'Default Location',
         totalAmount: bookingData.totalAmount,
         driverDetails: {
-          name: user.name || 'User',
-          licenseNumber: 'DL123456789', // Default license number
-          phone: user.phone || '1234567890'
+          name: bookingData.driverDetails.name.trim(),
+          licenseNumber: bookingData.driverDetails.licenseNumber.trim(),
+          phone: bookingData.driverDetails.phone.trim()
         }
       };
 
@@ -134,6 +172,16 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
 
       const result = await response.json();
       console.log('Booking response:', result);
+      
+      // Update vehicle availability status in Redux store
+      dispatch(updateVehicleStatus({ 
+        vehicleId: vehicle._id, 
+        isAvailable: false 
+      }));
+      
+      // Set flag to trigger vehicle list refresh
+      localStorage.setItem('lastBookingChange', Date.now().toString());
+      
       onBookingSuccess(result);
       onClose();
     } catch (err) {
@@ -145,32 +193,8 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
 
   if (!isOpen) return null;
 
-  // Check if user is logged in
-  if (!user || !token) {
-    return (
-      <div className="booking-modal-overlay">
-        <div className="booking-modal">
-          <div className="booking-modal-header">
-            <h2>Login Required</h2>
-            <button className="close-btn" onClick={onClose}>
-              <FaTimes />
-            </button>
-          </div>
-          <div className="booking-modal-content">
-            <div className="error-message">
-              <FaTimes />
-              <span>Please login to book a vehicle</span>
-            </div>
-            <div className="booking-actions">
-              <button type="button" className="btn btn-primary" onClick={onClose}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Show login warning if user is not logged in, but still show the form
+  const isLoggedIn = user && token;
 
   return (
     <div className="booking-modal-overlay">
@@ -183,6 +207,18 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
         </div>
 
         <div className="booking-modal-content">
+          {/* Login Warning Banner */}
+          {!isLoggedIn && (
+            <div className="login-warning">
+              <FaExclamationTriangle />
+              <div className="warning-content">
+                <h4>Login Required</h4>
+                <p>Please login to complete your booking. You can still fill out the form below to see what information is required.</p>
+                <a href="/login" className="login-link">Go to Login Page</a>
+              </div>
+            </div>
+          )}
+
           <div className="vehicle-summary">
             <div className="vehicle-image">
               <img 
@@ -263,6 +299,57 @@ const BookingModal = ({ vehicle, isOpen, onClose, onBookingSuccess }) => {
                   name="returnTime"
                   value={bookingData.returnTime}
                   onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Driver Details Section */}
+            <div className="driver-details-section">
+              <h4>Driver Details</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="driverDetails.name">
+                    <FaUser /> Driver Name
+                  </label>
+                  <input
+                    type="text"
+                    id="driverDetails.name"
+                    name="driverDetails.name"
+                    value={bookingData.driverDetails.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter driver's full name"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="driverDetails.phone">
+                    <FaPhone /> Driver Phone
+                  </label>
+                  <input
+                    type="tel"
+                    id="driverDetails.phone"
+                    name="driverDetails.phone"
+                    value={bookingData.driverDetails.phone}
+                    onChange={handleInputChange}
+                    placeholder="Enter driver's phone number"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="driverDetails.licenseNumber">
+                  <FaKey /> License Number
+                </label>
+                <input
+                  type="text"
+                  id="driverDetails.licenseNumber"
+                  name="driverDetails.licenseNumber"
+                  value={bookingData.driverDetails.licenseNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter driving license number"
                   required
                 />
               </div>

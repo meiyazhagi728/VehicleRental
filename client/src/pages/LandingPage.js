@@ -24,10 +24,10 @@ const LandingPage = () => {
       <section className="hero-section">
         <div className="hero-background">
           <div className="hero-overlay"></div>
-          <img src={jaguarImage} alt="Luxury Vehicle" className="hero-vehicle-image animate-scale" />
+          <img src={jaguarImage} alt="Luxury Vehicle" className="hero-vehicle-image animate-scale" style={{'width':'530px'}}  />
           <div className="hero-particles"></div>
         </div>
-        <div className="hero-content animate-slide-up">
+        <div className="hero-content animate-slide-up" >
           <div className={`hero-text ${isVisible ? 'animate-in' : ''}`}>
             <h1 className="hero-title">
               <span className="title-line">Premium Vehicle</span>

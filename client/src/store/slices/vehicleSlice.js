@@ -160,6 +160,58 @@ export const addVehicleReview = createAsyncThunk(
   }
 );
 
+// Refresh vehicles (re-fetch with current filters)
+export const refreshVehicles = createAsyncThunk(
+  'vehicles/refresh',
+  async (filters, thunkAPI) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters) {
+        Object.keys(filters).forEach(key => {
+          if (filters[key]) params.append(key, filters[key]);
+        });
+      }
+      
+      const response = await api.get(`/vehicles?${params}`);
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Update vehicle availability status
+export const updateVehicleAvailability = createAsyncThunk(
+  'vehicles/updateAvailability',
+  async ({ vehicleId, isAvailable }, thunkAPI) => {
+    try {
+      const token = thunkAPI.getState().auth.user?.token;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await api.put(`/vehicles/${vehicleId}/availability`, 
+        { isAvailable }, config);
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 export const vehicleSlice = createSlice({
   name: 'vehicles',
   initialState,
@@ -172,6 +224,16 @@ export const vehicleSlice = createSlice({
     },
     clearVehicle: (state) => {
       state.vehicle = null;
+    },
+    updateVehicleStatus: (state, action) => {
+      const { vehicleId, isAvailable } = action.payload;
+      const vehicle = state.vehicles.find(v => v._id === vehicleId);
+      if (vehicle) {
+        vehicle.isAvailable = isAvailable;
+      }
+      if (state.vehicle && state.vehicle._id === vehicleId) {
+        state.vehicle.isAvailable = isAvailable;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -266,9 +328,44 @@ export const vehicleSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
+      })
+      .addCase(refreshVehicles.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(refreshVehicles.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.vehicles = action.payload.vehicles;
+        state.pagination = action.payload.pagination;
+      })
+      .addCase(refreshVehicles.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(updateVehicleAvailability.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateVehicleAvailability.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        const index = state.vehicles.findIndex(
+          (vehicle) => vehicle._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.vehicles[index] = action.payload;
+        }
+        if (state.vehicle && state.vehicle._id === action.payload._id) {
+          state.vehicle = action.payload;
+        }
+      })
+      .addCase(updateVehicleAvailability.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       });
   },
 });
 
-export const { reset, clearVehicle } = vehicleSlice.actions;
+export const { reset, clearVehicle, updateVehicleStatus } = vehicleSlice.actions;
 export default vehicleSlice.reducer;

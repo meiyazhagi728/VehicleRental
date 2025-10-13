@@ -246,15 +246,33 @@ router.post('/', [
 router.put('/:id', [
   protect,
   authorize('vendor'),
+  body('name').optional().trim().notEmpty().withMessage('Vehicle name cannot be empty'),
+  body('type').optional().isIn(['Car', 'Bike', 'SUV', 'Van', 'Truck', 'Bus', 'Auto']).withMessage('Invalid vehicle type'),
+  body('fuelType').optional().isIn(['Petrol', 'Diesel', 'Electric', 'Hybrid', 'CNG']).withMessage('Invalid fuel type'),
   body('brand').optional().trim().notEmpty().withMessage('Brand cannot be empty'),
   body('model').optional().trim().notEmpty().withMessage('Model cannot be empty'),
-  body('type').optional().isIn(['sedan', 'suv', 'hatchback', 'coupe', 'convertible', 'truck', 'van']).withMessage('Invalid vehicle type'),
-  body('year').optional().isInt({ min: 1990, max: new Date().getFullYear() + 1 }).withMessage('Invalid year'),
-  body('pricing.dailyRate').optional().isFloat({ min: 0 }).withMessage('Daily rate must be a positive number')
+  body('year').optional().isInt({ min: 1900, max: new Date().getFullYear() + 1 }).withMessage('Invalid year'),
+  body('description').optional().trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
+  body('pricePerDay').optional().isFloat({ min: 0 }).withMessage('Price per day must be a positive number'),
+  body('location').optional().trim().notEmpty().withMessage('Location cannot be empty'),
+  body('images').optional().isArray({ min: 1 }).withMessage('At least one image is required'),
+  body('specifications.seats').optional().isInt({ min: 1 }).withMessage('Number of seats must be at least 1'),
+  body('specifications.transmission').optional().isIn(['Manual', 'Automatic']).withMessage('Invalid transmission type'),
+  body('specifications.mileage').optional().isFloat({ min: 0 }).withMessage('Mileage must be a positive number'),
+  body('specifications.engineCapacity').optional().trim().notEmpty().withMessage('Engine capacity cannot be empty'),
+  body('specifications.color').optional().trim().notEmpty().withMessage('Color cannot be empty'),
+  body('specifications.registrationNumber').optional().trim().notEmpty().withMessage('Registration number cannot be empty'),
+  body('specifications.insuranceExpiry').optional().isISO8601().withMessage('Valid insurance expiry date is required'),
+  body('specifications.permitExpiry').optional().isISO8601().withMessage('Valid permit expiry date is required')
 ], async (req, res) => {
   try {
+    console.log('Update vehicle request body:', JSON.stringify(req.body, null, 2));
+    console.log('Update vehicle params:', req.params);
+    console.log('User ID:', req.user?._id);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({ 
         message: 'Validation failed', 
         errors: errors.array() 
@@ -368,12 +386,12 @@ router.post('/:id/reviews', [
 });
 
 // @route   PUT /api/vehicles/:id/availability
-// @desc    Update vehicle availability
+// @desc    Update vehicle availability status
 // @access  Private
 router.put('/:id/availability', [
   protect,
-  authorize('vendor'),
-  body('availability').isBoolean().withMessage('Availability must be a boolean')
+  body('isAvailable').optional().isBoolean().withMessage('isAvailable must be a boolean'),
+  body('availability').optional().isBoolean().withMessage('availability must be a boolean')
 ], async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id);
@@ -382,15 +400,30 @@ router.put('/:id/availability', [
       return res.status(404).json({ message: 'Vehicle not found' });
     }
 
-    // Check if user owns this vehicle
-    if (vehicle.vendorId.toString() !== req.user._id.toString()) {
+    // Check authorization - allow vendors to update their own vehicles, admins to update any
+    const isVendor = req.user.role === 'vendor' && vehicle.vendorId.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isVendor && !isAdmin) {
       return res.status(403).json({ message: 'Not authorized to update this vehicle' });
     }
 
-    vehicle.availability = req.body.availability;
+    // Update isAvailable if provided (for booking system)
+    if (req.body.isAvailable !== undefined) {
+      vehicle.isAvailable = req.body.isAvailable;
+    }
+    
+    // Update availability if provided (for vendor management)
+    if (req.body.availability !== undefined) {
+      vehicle.availability = req.body.availability;
+    }
+
     await vehicle.save();
 
-    res.json({ message: 'Availability updated successfully', vehicle });
+    // Invalidate cache when vehicle availability is updated
+    invalidateVehicleCache();
+
+    res.json({ message: 'Vehicle availability updated successfully', vehicle });
   } catch (error) {
     console.error('Update vehicle availability error:', error);
     res.status(500).json({ message: 'Server error' });

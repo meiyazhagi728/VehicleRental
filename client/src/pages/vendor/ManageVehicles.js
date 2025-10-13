@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 
 const ManageVehicles = () => {
   const { user, token } = useSelector((state) => state.auth);
@@ -107,11 +108,28 @@ const ManageVehicles = () => {
                   <td>{v.type}</td>
                   <td>₹{v.pricePerDay}</td>
                   <td>{v.isAvailable ? 'Available' : 'Booked'}</td>
-                  <td style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn btn-secondary" onClick={() => toggleAvailability(v)}>
-                      {v.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
+                  <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => navigate(`/vendor/edit-vehicle/${v._id}`)}
+                      title="Edit Vehicle"
+                    >
+                      <FaEdit />
                     </button>
-                    <button className="btn btn-danger" onClick={() => deleteVehicle(v._id)}>Delete</button>
+                    <button 
+                      className="btn btn-secondary" 
+                      onClick={() => toggleAvailability(v)}
+                      title={v.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
+                    >
+                      {v.isAvailable ? <FaToggleOn /> : <FaToggleOff />}
+                    </button>
+                    <button 
+                      className="btn btn-danger" 
+                      onClick={() => deleteVehicle(v._id)}
+                      title="Delete Vehicle"
+                    >
+                      <FaTrash />
+                    </button>
                   </td>
                 </tr>
               ))}

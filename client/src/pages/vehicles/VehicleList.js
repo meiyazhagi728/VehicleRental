@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getVehicles } from '../../store/slices/vehicleSlice';
+import { getVehicles, refreshVehicles, updateVehicleStatus } from '../../store/slices/vehicleSlice';
 import { FaSearch, FaFilter, FaStar, FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
 import BookingModal from '../../components/BookingModal';
 import useDebounce from '../../hooks/useDebounce';
@@ -36,6 +36,58 @@ const VehicleList = () => {
     };
     dispatch(getVehicles(debouncedFilters));
   }, [dispatch, debouncedMinPrice, debouncedMaxPrice, debouncedSearch, filters]);
+
+  // Check for booking changes and refresh vehicles
+  useEffect(() => {
+    const checkForBookingChanges = () => {
+      const lastBookingChange = localStorage.getItem('lastBookingChange');
+      const lastVehicleRefresh = localStorage.getItem('lastVehicleRefresh');
+      
+      if (lastBookingChange && lastBookingChange !== lastVehicleRefresh) {
+        console.log('Booking change detected, refreshing vehicles...');
+        dispatch(refreshVehicles(filters));
+        localStorage.setItem('lastVehicleRefresh', lastBookingChange);
+      }
+    };
+
+    // Check immediately
+    checkForBookingChanges();
+
+    // Check periodically
+    const interval = setInterval(checkForBookingChanges, 2000);
+
+    return () => clearInterval(interval);
+  }, [dispatch, filters]);
+
+  // Refresh vehicles when user returns to the page (e.g., after cancelling a booking)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window focused, refreshing vehicles...');
+      dispatch(refreshVehicles(filters));
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page visible, refreshing vehicles...');
+        dispatch(refreshVehicles(filters));
+      }
+    };
+
+    // Add a small delay to ensure any booking operations have completed
+    const handleFocusWithDelay = () => {
+      setTimeout(() => {
+        dispatch(refreshVehicles(filters));
+      }, 1000);
+    };
+
+    window.addEventListener('focus', handleFocusWithDelay);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocusWithDelay);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [dispatch, filters]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -74,6 +126,15 @@ const VehicleList = () => {
     alert(`Booking successful! Booking ID: ${booking._id}`);
     setIsBookingModalOpen(false);
     setSelectedVehicle(null);
+    
+    // Update vehicle availability status in Redux store
+    dispatch(updateVehicleStatus({ 
+      vehicleId: booking.vehicleId, 
+      isAvailable: false 
+    }));
+    
+    // Refresh the vehicle list to get updated data
+    dispatch(refreshVehicles(filters));
   };
 
   const closeBookingModal = () => {

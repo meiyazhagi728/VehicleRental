@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FaCalendarAlt, FaMapMarkerAlt, FaCar, FaClock, FaTimes, FaCheckCircle, FaExclamationTriangle, FaSearch, FaCreditCard, FaKey } from 'react-icons/fa';
+import { updateVehicleStatus, refreshVehicles } from '../../store/slices/vehicleSlice';
 import PaymentModal from '../../components/PaymentModal';
 import OTPVerification from '../../components/OTPVerification';
 import './MyBookings.css';
 
 const MyBookings = () => {
+  const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth || {});
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,22 @@ const MyBookings = () => {
       if (!response.ok) {
         throw new Error('Failed to cancel booking');
       }
+
+      // Find the booking to get vehicle ID
+      const booking = bookings.find(b => b._id === bookingId);
+      if (booking && booking.vehicleId) {
+        // Update vehicle availability status in Redux store
+        dispatch(updateVehicleStatus({ 
+          vehicleId: booking.vehicleId, 
+          isAvailable: true 
+        }));
+        
+        // Refresh vehicle list to get updated data
+        dispatch(refreshVehicles({}));
+      }
+
+      // Set flag to trigger vehicle list refresh
+      localStorage.setItem('lastBookingChange', Date.now().toString());
 
       // Refresh bookings
       await fetchUserBookings();

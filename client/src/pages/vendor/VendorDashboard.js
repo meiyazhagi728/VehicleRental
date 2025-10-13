@@ -409,37 +409,66 @@ const VendorDashboard = () => {
         })
       ]);
       
-      if (!vehiclesRes.ok || !bookingsRes.ok) return;
+      if (!vehiclesRes.ok || !bookingsRes.ok) {
+        console.error('Failed to fetch data:', {
+          vehiclesStatus: vehiclesRes.status,
+          bookingsStatus: bookingsRes.status
+        });
+        return;
+      }
       
       const vehicles = await vehiclesRes.json();
       const bookingsData = await bookingsRes.json();
       const bookings = Array.isArray(bookingsData) ? bookingsData : (bookingsData.bookings || []);
       
+      console.log('Vehicles for performance:', vehicles.length);
+      console.log('Bookings for performance:', bookings.length);
+      
       // Calculate performance metrics for each vehicle
       const vehiclePerformance = vehicles.map(vehicle => {
-        const vehicleBookings = bookings.filter(booking => 
-          booking.vehicleId && booking.vehicleId._id === vehicle._id
-        );
+        const vehicleBookings = bookings.filter(booking => {
+          // Handle both populated and non-populated vehicleId
+          const bookingVehicleId = booking.vehicleId?._id || booking.vehicleId;
+          return bookingVehicleId && bookingVehicleId.toString() === vehicle._id.toString();
+        });
         
         const totalBookings = vehicleBookings.length;
         const revenue = vehicleBookings.reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
-        const ratings = vehicleBookings.filter(b => b.rating).map(b => b.rating);
+        const ratings = vehicleBookings.filter(b => b.rating && b.rating > 0).map(b => b.rating);
         const avgRating = ratings.length > 0 ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : 0;
         
+        console.log(`Vehicle ${vehicle.name || vehicle.brand} ${vehicle.model}:`, {
+          totalBookings,
+          revenue,
+          avgRating,
+          isAvailable: vehicle.isAvailable
+        });
+        
         return {
-          name: `${vehicle.brand} ${vehicle.model}`,
+          _id: vehicle._id,
+          name: vehicle.name || `${vehicle.brand || vehicle.make} ${vehicle.model}`,
+          type: vehicle.type || 'Vehicle',
+          pricePerDay: vehicle.pricePerDay || 0,
+          totalBookings: totalBookings,
           revenue: revenue,
-          bookings: totalBookings,
-          rating: Math.round(avgRating * 10) / 10
+          rating: Math.round(avgRating * 10) / 10,
+          isAvailable: vehicle.isAvailable !== undefined ? vehicle.isAvailable : true
         };
       });
       
-      // Sort by revenue and take top 3
+      // Sort by revenue and take top performers (show all vehicles, not just top 3)
       const topPerformers = vehiclePerformance
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 3);
+        .sort((a, b) => b.revenue - a.revenue);
       
-      setTopPerformers(topPerformers);
+      console.log('Top performers data:', topPerformers);
+      
+      // If no vehicles found, set empty array
+      if (topPerformers.length === 0) {
+        console.log('No vehicle performance data found');
+        setTopPerformers([]);
+      } else {
+        setTopPerformers(topPerformers);
+      }
     } catch (error) {
       console.error('Error fetching top performers:', error);
     }
@@ -527,8 +556,8 @@ const VendorDashboard = () => {
       header: 'Vehicle',
       render: (vehicle) => (
         <div className="vehicle-info">
-          <strong>{vehicle.name}</strong>
-          <small>{vehicle.type}</small>
+          <strong>{vehicle.name || 'N/A'}</strong>
+          <small>{vehicle.type || 'Vehicle'}</small>
         </div>
       )
     },
@@ -536,21 +565,21 @@ const VendorDashboard = () => {
       key: 'pricePerDay',
       header: 'Rate/Day',
       render: (vehicle) => (
-        <span className="price">₹{vehicle.pricePerDay}</span>
+        <span className="price">₹{vehicle.pricePerDay || 0}</span>
       )
     },
     {
       key: 'totalBookings',
       header: 'Bookings',
       render: (vehicle) => (
-        <span className="bookings-count">{vehicle.totalBookings}</span>
+        <span className="bookings-count">{vehicle.totalBookings || 0}</span>
       )
     },
     {
       key: 'revenue',
       header: 'Revenue',
       render: (vehicle) => (
-        <span className="revenue">₹{vehicle.revenue.toLocaleString()}</span>
+        <span className="revenue">₹{(vehicle.revenue || 0).toLocaleString()}</span>
       )
     },
     {

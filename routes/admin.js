@@ -383,6 +383,32 @@ router.put('/users/:id/deactivate', async (req, res) => {
   }
 });
 
+// @route   PUT /api/admin/users/:id/reject
+// @desc    Reject vendor
+// @access  Private (Admin only)
+router.put('/users/:id/reject', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.role !== 'vendor') {
+      return res.status(400).json({ message: 'Only vendors can be rejected' });
+    }
+
+    user.isApproved = false;
+    user.isActive = false;
+    await user.save();
+
+    res.json({ message: 'Vendor rejected successfully', user });
+  } catch (error) {
+    console.error('Reject vendor error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   PUT /api/admin/users/:id/activate
 // @desc    Activate user
 // @access  Private (Admin only)

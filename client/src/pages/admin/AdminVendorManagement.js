@@ -37,7 +37,7 @@ const AdminVendorManagement = () => {
         name: vendor.name,
         email: vendor.email,
         phone: vendor.phone || 'N/A',
-        status: vendor.isActive ? 'approved' : 'pending',
+        status: vendor.isApproved ? 'approved' : (vendor.isActive === false ? 'rejected' : 'pending'),
         joinDate: new Date(vendor.createdAt).toISOString().split('T')[0],
         totalVehicles: Math.floor(Math.random() * 20) + 5, // Mock data for now
         totalRevenue: Math.floor(Math.random() * 100000) + 10000, // Mock data for now
@@ -75,13 +75,12 @@ const AdminVendorManagement = () => {
     console.log('Approve button clicked for vendor:', vendorId);
     try {
       
-      const response = await fetch(`http://localhost:5000/api/admin/users/${vendorId}`, {
+      const response = await fetch(`http://localhost:5000/api/admin/users/${vendorId}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${user.token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ isActive: true })
+        }
       });
 
       if (response.ok) {
@@ -95,11 +94,12 @@ const AdminVendorManagement = () => {
         // Refresh data from database
         await fetchVendors();
       } else {
-        throw new Error('Failed to approve vendor');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to approve vendor');
       }
     } catch (error) {
       console.error('Error approving vendor:', error);
-      alert('Failed to approve vendor. Please try again.');
+      alert(`Failed to approve vendor: ${error.message}`);
     }
   };
 
@@ -107,13 +107,12 @@ const AdminVendorManagement = () => {
     console.log('Reject button clicked for vendor:', vendorId);
     try {
       
-      const response = await fetch(`http://localhost:5000/api/admin/users/${vendorId}`, {
+      const response = await fetch(`http://localhost:5000/api/admin/users/${vendorId}/reject`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${user.token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ isActive: false })
+        }
       });
 
       if (response.ok) {
@@ -127,11 +126,12 @@ const AdminVendorManagement = () => {
         // Refresh data from database
         await fetchVendors();
       } else {
-        throw new Error('Failed to reject vendor');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reject vendor');
       }
     } catch (error) {
       console.error('Error rejecting vendor:', error);
-      alert('Failed to reject vendor. Please try again.');
+      alert(`Failed to reject vendor: ${error.message}`);
     }
   };
 

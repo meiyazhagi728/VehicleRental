@@ -112,6 +112,21 @@ const Login = () => {
             Don't have an account? <Link to="/register">Register here</Link>
           </p>
         </div>
+         <div className="auth-credentials-info" style={{
+          marginTop:'50px'
+         }}>
+          <p>Use the following credentials to login:</p>
+          <ul>
+            <li>Email: admin@gmail.com</li>
+            <li>Password: admin123</li>
+            <li>Email: vendor@gmail.com</li>
+            <li>Password: vendor123</li>
+            <li>Email: mechanic@gmail.com</li>
+            <li>Password: mechanic123</li>
+            <li>Email: user@gmail.com</li>
+            <li>Password: user1234</li>
+          </ul>
+        </div>
       </div>
 
       <style jsx>{`
